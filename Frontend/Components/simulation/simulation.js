@@ -1,6 +1,6 @@
 //#region IMPORTS
 //#endregion IMPORTS
-
+import SunCalc from './solar.js'; 
 //#region SIMULATION
 let template = document.createElement('template');
 template.innerHTML = /*html*/`
@@ -181,15 +181,27 @@ window.customElements.define('simulation-れ', class extends HTMLElement {
         });
 
         // Sun
-        BABYLON.SceneLoader.ImportMesh("", "", "../Frontend/Assets/GLBs/Sun with beams.glb", this.scene, (meshes) => {
+        BABYLON.SceneLoader.ImportMesh("", "", "../Frontend/Assets/GLBs/Sun with beams.glb", this.scene, async (meshes) => {
             console.log("Sun.glb loaded");
+
+            const street = "Geldenaaksebaan 335";
+            const city = "Leuven";
+            const postal = "3001";
+            const date = new Date(); 
+            // date.setHours(0, 0, 0, 0)
+            const { azimuth, altitude } = await SunCalc.getSolarPositionForLocation(street, city, postal, date);
+            const x = Math.cos(altitude) * Math.sin(azimuth);
+            const y = Math.sin(altitude);
+            const z = Math.cos(altitude) * Math.cos(azimuth);
+            
 
             // Find the root mesh
             const sunRoot = meshes.find(m => m.name === "__root__");
 
             if (sunRoot) {
+                const distance = 10;
                 sunRoot.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
-                sunRoot.position = new BABYLON.Vector3(0.1, 1.3, -3);
+                sunRoot.position = new BABYLON.Vector3(x * distance, y * distance, z * distance);
                 sunRoot.rotation = new BABYLON.Vector3(0, 0.8, 0);
                 console.log("Applied transform to Sun root");
             }
